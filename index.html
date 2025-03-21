@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Bluetooth Configuration</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Web Bluetooth Configuration</h1>
+
+    <button id="scanButton">Scan</button>
+
+    <label for="filterSelect">Filter:</label>
+    <select id="filterSelect">
+      <option value="none">None</option>
+      <!-- Add more filter options here -->
+    </select>
+
+    <button id="connectButton">Connect</button>
+    <button id="disconnectButton">Disconnect</button>
+
+    <br /><br />
+
+    <label for="modeSelect">Mode:</label>
+    <select id="modeSelect">
+      <option value="mode1">Mode 1</option>
+      <option value="mode2">Mode 2</option>
+      <option value="mode3">Mode 3</option>
+    </select>
+
+    <br /><br />
+
+    <label for="idInput">Custom ID:</label>
+    <input type="text" id="idInput" />
+    <button id="setIdButton">Set ID</button>
+
+    <br /><br />
+
+    <button id="openButton">Open</button>
+    <button id="closeButton">Close</button>
+
+    <div id="messages"></div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
