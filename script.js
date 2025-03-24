@@ -13,6 +13,9 @@ let device;
 let server;
 let characteristic;
 
+const MODE_SERVICE_UUID = "19b10000-e8f2-537e-4f6c-d104768a1214"; // Replace with your service UUID
+const MODE_CHARACTERISTIC_UUID = "19b10001-e8f2-537e-4f6c-d104768a1214"; // Replace with your characteristic UUID
+
 scanButton.addEventListener("click", async () => {
   try {
     const filterName =
@@ -20,7 +23,7 @@ scanButton.addEventListener("click", async () => {
     console.log("filterName", filterName);
     device = await navigator.bluetooth.requestDevice({
       //   acceptAllDevices: true,
-      filters: [{ name: "ESP32" }],
+      filters: [{ namePrefix: "Whyixd" }],
       optionalServices: [
         "generic_access",
         "generic_attribute",
@@ -58,6 +61,9 @@ connectButton.addEventListener("click", async () => {
 
     // Display manufacturer data (This part needs actual implementation based on your device)
     logMessage("Manufacturer Data: (Not available in this example)");
+
+    // Read mode and update select
+    await readModeAndUpdateSelect();
   } catch (error) {
     logMessage(`Error connecting: ${error}`);
   }
@@ -92,6 +98,35 @@ closeButton.addEventListener("click", () => {
   logMessage("Closing...");
   // Implement the close function logic
 });
+
+async function readModeAndUpdateSelect() {
+  try {
+    const service = await server.getPrimaryService(MODE_SERVICE_UUID);
+    characteristic = await service.getCharacteristic(MODE_CHARACTERISTIC_UUID);
+    const value = await characteristic.readValue();
+    let modeValue = value.getUint8(0); // Assuming mode is a single byte
+
+    // Convert ASCII to number
+    // modeValue = modeValue - 48;
+
+    // Update the select dropdown
+    switch (modeValue) {
+      case 1:
+        modeSelect.value = "mode1";
+        break;
+      case 2:
+        modeSelect.value = "mode2";
+        break;
+      case 3:
+        modeSelect.value = "mode3";
+        break;
+      default:
+        logMessage(`Unknown mode value: ${modeValue}`);
+    }
+  } catch (error) {
+    logMessage(`Error reading mode: ${error}`);
+  }
+}
 
 function logMessage(message) {
   messages.innerHTML += `<p>${message}</p>`;
