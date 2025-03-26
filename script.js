@@ -21,21 +21,43 @@ const MODE_SELECT_CHARACTERISTIC_UUID = "19b10002-e8f2-537e-4f6c-d104768a1214"; 
 const EEPROM_SAVE_CHARACTERISTIC_UUID = "19b10003-e8f2-537e-4f6c-d104768a1214"; // Add this line for EEPROM save characteristic
 let bleServices;
 
-if (!navigator.bluetooth) {
-  var userAgent = navigator.userAgent || navigator.vendor || window.opera;
-  if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-    // iOS設備且不支援Web Bluetooth
-    var confirmDownload = confirm(
-      "此功能需要使用支援Web Bluetooth的Bluefy瀏覽器。是否前往App Store下載？"
-    );
-    if (confirmDownload) {
-      window.location.href =
-        "https://apps.apple.com/us/app/bluefy-web-ble-browser/id1492822055";
-    }
-  } else {
-    alert("您的瀏覽器不支援Web Bluetooth，請使用支援的瀏覽器訪問此功能。");
-  }
-}
+// Check browser compatibility at the beginning
+document.addEventListener("DOMContentLoaded", function () {
+  checkBrowserCompatibility();
+});
+
+// function checkBrowserCompatibility() {
+//   if (!navigator.bluetooth) {
+//     var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+//     // Check if device is iOS
+//     if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+//       // Check if Bluefy is installed using URL scheme
+//       // Bluefy is not installed, offer to download
+//       var confirmDownload = confirm(
+//         "This feature requires the Bluefy browser with Web Bluetooth support. Would you like to download it from the App Store?"
+//       );
+//       if (confirmDownload) {
+//         window.location.href =
+//           "https://apps.apple.com/us/app/bluefy-web-ble-browser/id1492822055";
+//       }
+//       // Bluefy is installed, offer to open in Bluefy
+//       // var openInBluefy = confirm(
+//       //   "Would you like to open this page in Bluefy browser for Web Bluetooth support?"
+//       // );
+//       // if (openInBluefy) {
+//       //   // Open current page in Bluefy
+//       //   const currentUrl = window.location.href;
+//       //   window.location.href = `bluefy://${currentUrl}`;
+//       // }
+//     }
+//   } else {
+//     // Not iOS but doesn't support Web Bluetooth
+//     alert(
+//       "Your browser doesn't support Web Bluetooth. Please use a compatible browser."
+//     );
+//   }
+// }
 
 scanButton.addEventListener("click", async () => {
   try {
