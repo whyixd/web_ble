@@ -3,6 +3,7 @@ const filterSelect = document.getElementById("filterSelect");
 const connectButton = document.getElementById("connectButton");
 const disconnectButton = document.getElementById("disconnectButton");
 const modeSelect = document.getElementById("modeSelect");
+const saveToEepromButton = document.getElementById("saveToEepromButton");
 const idInput = document.getElementById("idInput");
 const setIdButton = document.getElementById("setIdButton");
 const openButton = document.getElementById("openButton");
@@ -11,10 +12,30 @@ const messages = document.getElementById("messages");
 
 let device;
 let server;
-let characteristic;
+let modeReadcharacteristic;
+let modeSelectcharacteristic;
 
-const MODE_SERVICE_UUID = "19b10000-e8f2-537e-4f6c-d104768a1214"; // Replace with your service UUID
-const MODE_CHARACTERISTIC_UUID = "19b10001-e8f2-537e-4f6c-d104768a1214"; // Replace with your characteristic UUID
+const MAIN_SERVICE_UUID = "19b10000-e8f2-537e-4f6c-d104768a1214"; // Replace with your service UUID
+const MODE_READ_CHARACTERISTIC_UUID = "19b10001-e8f2-537e-4f6c-d104768a1214"; // Replace with your characteristic UUID
+const MODE_SELECT_CHARACTERISTIC_UUID = "19b10002-e8f2-537e-4f6c-d104768a1214"; // Replace with your characteristic UUID
+const EEPROM_SAVE_CHARACTERISTIC_UUID = "19b10003-e8f2-537e-4f6c-d104768a1214"; // Add this line for EEPROM save characteristic
+let bleServices;
+
+if (!navigator.bluetooth) {
+  var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+    // iOS設備且不支援Web Bluetooth
+    var confirmDownload = confirm(
+      "此功能需要使用支援Web Bluetooth的Bluefy瀏覽器。是否前往App Store下載？"
+    );
+    if (confirmDownload) {
+      window.location.href =
+        "https://apps.apple.com/us/app/bluefy-web-ble-browser/id1492822055";
+    }
+  } else {
+    alert("您的瀏覽器不支援Web Bluetooth，請使用支援的瀏覽器訪問此功能。");
+  }
+}
 
 scanButton.addEventListener("click", async () => {
   try {
@@ -34,7 +55,7 @@ scanButton.addEventListener("click", async () => {
 
     logMessage(`Device selected: ${device.name}`);
   } catch (error) {
-    logMessage(`Error scanning: ${error}`);
+    logMessage(`Error scanning: ${error}`, "error");
   }
 });
 
@@ -58,14 +79,14 @@ connectButton.addEventListener("click", async () => {
     services.forEach((service) => {
       logMessage(`  - ${service.uuid}`);
     });
-
+    bleServices = services;
     // Display manufacturer data (This part needs actual implementation based on your device)
     logMessage("Manufacturer Data: (Not available in this example)");
 
     // Read mode and update select
     await readModeAndUpdateSelect();
   } catch (error) {
-    logMessage(`Error connecting: ${error}`);
+    logMessage(`Error connecting: ${error}`, "error");
   }
 });
 
@@ -101,9 +122,11 @@ closeButton.addEventListener("click", () => {
 
 async function readModeAndUpdateSelect() {
   try {
-    const service = await server.getPrimaryService(MODE_SERVICE_UUID);
-    characteristic = await service.getCharacteristic(MODE_CHARACTERISTIC_UUID);
-    const value = await characteristic.readValue();
+    const service = await server.getPrimaryService(MAIN_SERVICE_UUID);
+    modeReadcharacteristic = await service.getCharacteristic(
+      MODE_READ_CHARACTERISTIC_UUID
+    );
+    const value = await modeReadcharacteristic.readValue();
     let modeValue = value.getUint8(0); // Assuming mode is a single byte
 
     // Convert ASCII to number
@@ -124,10 +147,77 @@ async function readModeAndUpdateSelect() {
         logMessage(`Unknown mode value: ${modeValue}`);
     }
   } catch (error) {
-    logMessage(`Error reading mode: ${error}`);
+    logMessage(`Error reading mode: ${error}`, "error");
   }
 }
 
-function logMessage(message) {
-  messages.innerHTML += `<p>${message}</p>`;
+async function writeMode(value) {
+  try {
+    const mode = new Uint8Array([value]);
+    await modeSelectcharacteristic.writeValue(mode);
+    logMessage(`Mode set to ${value}`);
+  } catch (error) {
+    logMessage(`Error writing mode: ${error}`, "error");
+  }
 }
+
+function logMessage(message, type = "info") {
+  if (type === "info") {
+    messages.innerHTML += `<p ">${message}</p>`;
+  } else if (type === "error") {
+    messages.innerHTML += `<p style="color:red">${message}</p>`;
+  }
+}
+
+// Add event listener for mode select change
+modeSelect.addEventListener("change", async () => {
+  if (!server) {
+    logMessage("Please connect to a device first.");
+    return;
+  }
+
+  try {
+    const service = await server.getPrimaryService(MAIN_SERVICE_UUID);
+    modeSelectcharacteristic = await service.getCharacteristic(
+      MODE_SELECT_CHARACTERISTIC_UUID
+    );
+
+    let modeValue;
+    switch (modeSelect.value) {
+      case "mode1":
+        modeValue = 1;
+        break;
+      case "mode2":
+        modeValue = 2;
+        break;
+      case "mode3":
+        modeValue = 3;
+        break;
+    }
+
+    await writeMode(modeValue);
+  } catch (error) {
+    logMessage(`Error setting mode: ${error}`, "error");
+  }
+});
+
+// Add event listener for save to EEPROM button
+saveToEepromButton.addEventListener("click", async () => {
+  if (!server) {
+    logMessage("Please connect to a device first.");
+    return;
+  }
+
+  try {
+    const service = await server.getPrimaryService(MAIN_SERVICE_UUID);
+    const eepromCharacteristic = await service.getCharacteristic(
+      EEPROM_SAVE_CHARACTERISTIC_UUID
+    );
+
+    // Send a command to save current settings to EEPROM
+    await eepromCharacteristic.writeValue(new Uint8Array([1])); // 1 means "save"
+    logMessage("Settings saved to EEPROM");
+  } catch (error) {
+    logMessage(`Error saving to EEPROM: ${error}`, "error");
+  }
+});
