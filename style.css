@@ -80,3 +80,11 @@ select, input {
 .reading {
     font-size: 1.8rem;
 }
+
+.homeButton {
+    background-color: #8e44ad;
+}
+
+.homeButton:hover {
+    background-color: #732d91;
+}

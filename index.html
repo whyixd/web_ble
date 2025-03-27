@@ -32,14 +32,25 @@
 
     <br /><br />
 
-    <label for="idInput">Custom ID:</label>
-    <input type="text" id="idInput" />
-    <button id="setIdButton">Set ID</button>
+    <div style="display: inline-block">
+      <label for="flowerSerial">Flower Serial:</label>
+      <input type="text" id="flowerSerial" />
+      <label for="flowerIndex">Index:</label>
+      <input type="number" id="flowerIndex" />
+      <button id="saveConfigButton">Save Config</button>
+    </div>
 
     <br /><br />
 
     <button id="openButton">Open</button>
     <button id="closeButton">Close</button>
+    <button id="homeButton" class="homeButton">Home</button>
+
+    <br /><br />
+
+    <div id="sensorStateContainer">
+      <h3>Home Sensor State: <span id="homeSensorState">Unknown</span></h3>
+    </div>
 
     <div id="messages"></div>
 
